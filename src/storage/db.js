@@ -42,23 +42,28 @@ export async function getAllProducts() {
 
 export async function saveProduct(product) {
   const database = await openDB();
+  const payload = {
+    ...product,
+    updatedAt: product.updatedAt ?? Date.now(),
+    deletedAt: product.deletedAt ?? null,
+  };
   return new Promise((resolve, reject) => {
     const tx = database.transaction(STORE_PRODUCTS, "readwrite");
     const store = tx.objectStore(STORE_PRODUCTS);
-    const request = store.put(product);
+    const request = store.put(payload);
     request.onsuccess = () => resolve(request.result);
     request.onerror = (e) => reject(e.target.error);
   });
 }
 
 export async function deleteProduct(id) {
-  const database = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = database.transaction(STORE_PRODUCTS, "readwrite");
-    const store = tx.objectStore(STORE_PRODUCTS);
-    const request = store.delete(id);
-    request.onsuccess = () => resolve();
-    request.onerror = (e) => reject(e.target.error);
+  const existing = await getAllProducts();
+  const product = existing.find((item) => item.id === id);
+  if (!product) return;
+  return saveProduct({
+    ...product,
+    deletedAt: Date.now(),
+    updatedAt: Date.now(),
   });
 }
 
@@ -117,7 +122,12 @@ export async function seedDefaultProducts() {
       continue;
     }
 
-    await saveProduct({ ...product, id: crypto.randomUUID() });
+    await saveProduct({
+      ...product,
+      id: crypto.randomUUID(),
+      updatedAt: Date.now(),
+      deletedAt: null,
+    });
     uniqueExistingKeys.add(key);
     existingByKey.set(key, product);
   }

@@ -13,6 +13,25 @@ Totalmente offline, instalável no celular, mobile-first.
 
 Considere revisar os códigos duplicados detectados no catálogo antes do release (já atualizados para evitar colisões automáticas).
 
+## Multiusuário em tempo real
+
+O app agora usa IndexedDB como cache offline e Supabase como backend central para sincronização em tempo real.
+
+Passos mínimos:
+
+1. Crie um projeto no Supabase.
+2. Execute o SQL de `supabase/schema.sql`.
+3. Configure no GitHub Pages / ambiente de build as variáveis:
+
+```bash
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-chave-anonima
+```
+
+4. Faça deploy novamente.
+
+Se as variáveis não existirem, o app continua funcionando offline/local, mas sem sincronização entre dispositivos.
+
 # 🌿 Natture Estoque — Controle de Estoque PWA
 
 Sistema de controle de estoque para loja de produtos naturais.

@@ -18,8 +18,6 @@ export default function ProductForm({ product, onSave, onCancel }) {
     category: "Suplementos",
   });
 
-  // avoid lint warning about setState in effect; this effect only updates form when `product` changes
-  /* eslint-disable-next-line react-hooks/set-state-in-effect */
   useEffect(() => {
     if (product) setForm({ ...product, quantity: String(product.quantity) });
   }, [product]);
