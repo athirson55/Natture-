@@ -6,6 +6,18 @@ on:
   pull_request:
     branches: [main, master]
 
+# Grant the workflow explicit permissions so the GITHUB_TOKEN can push to gh-pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Grant explicit permissions to the GITHUB_TOKEN so the pages action can push
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
