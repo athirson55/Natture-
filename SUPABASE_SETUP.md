@@ -44,7 +44,7 @@ Você vai ver:
 **Copie e guarde** ambas (você vai precisar em breve):
 
 ```
-VITE_SUPABASE_URL = <Project URL>
+VITE_SUPABASE_URL = <Project URL sem /rest/v1, ex.: https://gabmdwlscwuocmytvfjg.supabase.co>
 VITE_SUPABASE_ANON_KEY = <anon public key>
 ```
 
