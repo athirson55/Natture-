@@ -135,11 +135,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans">
-      {syncStatus.enabled && (
-        <div className="fixed top-3 right-3 z-50">
-          <div
-            className={`px-3 py-2 rounded-full text-xs font-bold shadow-lg border backdrop-blur-md ${
-              syncStatus.state === "synced"
+      <div className="fixed top-3 right-3 z-50">
+        <div
+          className={`px-3 py-2 rounded-full text-xs font-bold shadow-lg border backdrop-blur-md ${
+            !syncStatus.enabled
+              ? "bg-zinc-600 text-white border-zinc-500/40"
+              : syncStatus.state === "synced"
                 ? "bg-emerald-500 text-white border-emerald-400/40"
                 : syncStatus.state === "syncing"
                   ? "bg-blue-500 text-white border-blue-400/40"
@@ -148,15 +149,22 @@ export default function App() {
                     : syncStatus.state === "error"
                       ? "bg-red-500 text-white border-red-400/40"
                       : "bg-zinc-600 text-white border-zinc-500/40"
-            }`}
-          >
-            {syncStatus.online ? "Online" : "Offline"}
-            {syncStatus.state === "syncing" && " · Sincronizando"}
-            {syncStatus.state === "synced" && " · Sincronizado"}
-            {syncStatus.state === "error" && " · Erro"}
-          </div>
+          }`}
+        >
+          {!syncStatus.enabled
+            ? "Sync desativado"
+            : syncStatus.online
+              ? "Online"
+              : "Offline"}
+          {syncStatus.enabled &&
+            syncStatus.state === "syncing" &&
+            " · Sincronizando"}
+          {syncStatus.enabled &&
+            syncStatus.state === "synced" &&
+            " · Sincronizado"}
+          {syncStatus.enabled && syncStatus.state === "error" && " · Erro"}
         </div>
-      )}
+      </div>
       <ToastContainer toasts={toasts} />
       <main className="pb-24 pt-6 max-w-lg mx-auto">
         {page === "dashboard" && (
