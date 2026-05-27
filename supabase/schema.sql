@@ -8,6 +8,12 @@ create table if not exists public.products (
   deletedAt bigint
 );
 
+alter table public.products
+  add column if not exists updatedAt bigint not null default 0;
+
+alter table public.products
+  add column if not exists deletedAt bigint;
+
 alter table public.products enable row level security;
 
 drop policy if exists "Public read" on public.products;

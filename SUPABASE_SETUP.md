@@ -299,6 +299,16 @@ Seu sistema agora é **multiusuário com sincronização em tempo real**!
 4. Clique "Run"
 5. Recarregue o app (Ctrl+F5)
 
+### ❌ "Falha na sincronização: Could not find the 'deletedAt' column"
+
+**Causa**: a tabela `products` no Supabase foi criada antes da migração que adiciona `deletedAt`.
+
+**Solução**:
+
+1. Abra o Supabase SQL Editor
+2. Execute novamente o conteúdo de [supabase/schema.sql](supabase/schema.sql)
+3. Recarregue o app com Ctrl+F5
+
 ### ✅ "Tudo funcionando mas tá lento"
 
 Normal! Supabase free tier tem latência de ~1-2 segundos. Se for muito mais, pode ser:

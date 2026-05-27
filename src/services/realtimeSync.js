@@ -4,6 +4,16 @@ import { supabase } from "./supabaseClient";
 const SYNC_INTERVAL_MS = 15000;
 const SYNC_DEBOUNCE_MS = 750;
 
+const isMissingDeletedAtColumnError = (error) => {
+  const message = String(error?.message || error || "").toLowerCase();
+  return (
+    message.includes("deletedat") &&
+    (message.includes("schema cache") ||
+      message.includes("column") ||
+      message.includes("42703"))
+  );
+};
+
 const normalizeProduct = (product) => ({
   ...product,
   quantity: Number(product.quantity ?? 0),
@@ -38,6 +48,7 @@ export function startRealtimeSync({ onStatusChange, onRemoteChange } = {}) {
   let intervalId = null;
   let channel = null;
   let syncing = false;
+  let supportsDeletedAt = true;
 
   const emitStatus = (patch) => {
     onStatusChange?.((prev) => ({
@@ -71,8 +82,14 @@ export function startRealtimeSync({ onStatusChange, onRemoteChange } = {}) {
     emitStatus({ online: true, state: "syncing", error: null });
 
     try {
+      const remoteQuery = supportsDeletedAt
+        ? supabase.from("products").select("*")
+        : supabase
+            .from("products")
+            .select("id,name,code,quantity,category,updatedAt");
+
       const [remoteResult, localRaw] = await Promise.all([
-        supabase.from("products").select("*"),
+        remoteQuery,
         getAllProducts(),
       ]);
 
@@ -90,10 +107,31 @@ export function startRealtimeSync({ onStatusChange, onRemoteChange } = {}) {
       });
 
       if (localToPush.length > 0) {
+        const payload = localToPush.map((product) =>
+          supportsDeletedAt
+            ? toRemotePayload(product)
+            : {
+                id: product.id,
+                name: product.name,
+                code: product.code ?? null,
+                quantity: Number(product.quantity ?? 0),
+                category: product.category,
+                updatedAt: Number(product.updatedAt ?? Date.now()),
+              },
+        );
+
         const { error } = await supabase
           .from("products")
-          .upsert(localToPush.map(toRemotePayload), { onConflict: "id" });
-        if (error) throw error;
+          .upsert(payload, { onConflict: "id" });
+
+        if (error) {
+          if (supportsDeletedAt && isMissingDeletedAtColumnError(error)) {
+            supportsDeletedAt = false;
+            scheduleSync();
+            return;
+          }
+          throw error;
+        }
       }
 
       for (const remoteProduct of remote) {
@@ -111,6 +149,12 @@ export function startRealtimeSync({ onStatusChange, onRemoteChange } = {}) {
         error: null,
       });
     } catch (error) {
+      if (supportsDeletedAt && isMissingDeletedAtColumnError(error)) {
+        supportsDeletedAt = false;
+        scheduleSync();
+        return;
+      }
+
       emitStatus({
         online: navigator.onLine,
         state: "error",
